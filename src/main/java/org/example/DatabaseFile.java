@@ -54,26 +54,32 @@ public class DatabaseFile implements Serializable {
         return removed;
     }
 
-    // удаление записи не по ключевым полям
+    // удаление по имени
     public List<Record> removeRecordsByName(String name) {
-        List<Integer> ids = indexByName.getOrDefault(name, Collections.emptyList());
-        List<Record> removedRecords = new ArrayList<>(); // создаём пустой список, чтобы запомнить, какие записи были удалены
-        for (int id : ids) { // проходим по всем id, у которых имя совпадает с заданным.
-            Record removed = table.remove(id); // Удаляем запись из основной таблицы (TreeMap<Integer, Record> table) по id
-            if (removed != null) { //  Если запись удалилась -> добавляем её в список удалённых.
+
+        List<Integer> ids = new ArrayList<>(indexByName.getOrDefault(name, Collections.emptyList()));
+        List<Record> removedRecords = new ArrayList<>();
+
+        for (int id : ids) {
+            Record removed = table.remove(id);
+            if (removed != null) {
                 removedRecords.add(removed);
                 removeFromIndex(indexByName, name, id);
-                removeFromIndex(indexByAge, removed.getId(), id);
+                removeFromIndex(indexByAge, removed.getAge(), id);
             }
         }
         return removedRecords;
     }
 
+    // удаление по возрасту
     public List<Record> removeRecordsByAge(int age) {
-        List<Integer> ids = indexByAge.getOrDefault(age, Collections.emptyList());
+
+        List<Integer> ids = new ArrayList<>(indexByAge.getOrDefault(age, Collections.emptyList()));
         List<Record> removedRecords = new ArrayList<>();
+
         for (int id : ids) {
             Record removed = table.remove(id);
+
             if (removed != null) {
                 removedRecords.add(removed);
                 removeFromIndex(indexByName, removed.getName(), id);
@@ -82,6 +88,7 @@ public class DatabaseFile implements Serializable {
         }
         return removedRecords;
     }
+
 
     // редактирование записи
     public boolean updateRecord(Record updatedRecord) {
